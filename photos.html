@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我们的回忆 · 毛毡照片板</title>
+<style>
+:root{--gold:#e8c98a;--gold2:#c9a55f}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:#3b3325;
+  background:url('photos/collage-bg-clean.jpg') center/cover no-repeat fixed;min-height:100vh}
+[hidden]{display:none!important}
+button{font-family:inherit}
+
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:url('photos/collage-bg-clean.jpg') center/cover no-repeat}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.22;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+  mix-blend-mode:screen}
+
+.head{position:relative;z-index:2;text-align:center;padding:18px 20px 4px}
+.head h1{font-size:clamp(20px,3.6vw,34px);font-weight:900;letter-spacing:3px;color:#5a4423;
+  text-shadow:0 1px 0 rgba(255,255,255,.65)}
+
+/* 毛毡板 */
+.layout{position:relative;z-index:2;display:flex;align-items:center;min-height:100vh;max-width:1620px;margin:0 auto;padding:10px 30px 10px 16px}
+.board-wrap{position:relative;z-index:2;flex:0 0 75%;min-width:0;margin:0;padding:0 16px 0 0}
+.poem{flex:1;min-width:0;text-align:center;font-family:"STXingkai","华文行楷","Xingkai SC","行书",cursive;font-size:clamp(24px,2.35vw,36px);font-weight:400;line-height:2.15;letter-spacing:.14em;color:#5a3f22;text-shadow:0 1px 0 rgba(255,255,255,.7);transform:translateY(38px) rotate(-2deg)}
+.poem span{display:block;white-space:nowrap}
+.board{position:relative;padding:16px 14px 18px;border-radius:10px;
+  border:10px solid #947450;
+  background-color:#b9a98d;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.045) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='.5'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 30% 20%,#d6c7ab,#b9a98d 70%,#a39276);
+  background-blend-mode:normal,normal,multiply,normal;
+  box-shadow:0 26px 54px rgba(0,0,0,.6),inset 0 0 0 3px rgba(255,255,255,.08),
+    inset 0 0 40px rgba(60,45,25,.35),0 0 0 2px #5f482d}
+.board::before,.board::after{content:"";position:absolute;width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#d8b98a,#7a5c36);box-shadow:0 1px 2px rgba(0,0,0,.5);z-index:3}
+.board::before{top:7px;left:7px}
+.board::after{top:7px;right:7px}
+
+.wall{display:grid;grid-template-columns:repeat(6,1fr);gap:10px 9px}
+
+/* 拍立得 + 图钉 */
+.polaroid{position:relative;background:#fbf7ec;border:0;border-radius:2px;padding:6px 6px 20px;
+  cursor:pointer;box-shadow:1px 3px 6px rgba(0,0,0,.4),0 12px 20px rgba(0,0,0,.28);
+  transform:rotate(var(--tilt,0deg));transition:transform .2s ease,box-shadow .2s ease;
+  text-align:left}
+.polaroid:hover{transform:rotate(0deg) translateY(-8px) scale(1.04);z-index:5;
+  box-shadow:2px 6px 12px rgba(0,0,0,.5),0 22px 34px rgba(0,0,0,.38)}
+.polaroid img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#e9dfc9;display:block;border-radius:1px}
+.polaroid.tall img{object-fit:contain;background:#f4ecdc}
+.polaroid figcaption{position:absolute;bottom:5px;left:0;right:0;text-align:center;
+  font:700 9px/1 ui-monospace,monospace;letter-spacing:.12em;color:#8a7a58}
+
+/* 图钉：金属针身 + 圆头 + 投影 */
+.pin{position:absolute;top:-9px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,var(--pin-hi,#ffe6a8) 0%,var(--pin,#c9a55f) 45%,var(--pin-dk,#8a6b2f) 100%);
+  box-shadow:0 3px 3px rgba(0,0,0,.5),inset 0 -2px 3px rgba(0,0,0,.3),inset 0 1px 1px rgba(255,255,255,.7);
+  z-index:4}
+.pin::after{content:"";position:absolute;left:50%;top:60%;width:2px;height:9px;
+  background:linear-gradient(#8a6b2f,rgba(0,0,0,.25));transform:translateX(-50%) rotate(8deg);
+  z-index:-1;box-shadow:1px 0 1px rgba(255,255,255,.25)}
+
+/* 纸胶带 */
+.tape{position:absolute;top:-10px;left:50%;width:62px;height:22px;transform:translateX(-50%) rotate(-3deg);
+  background:linear-gradient(90deg,rgba(240,225,190,.72),rgba(232,210,165,.55),rgba(240,225,190,.72));
+  box-shadow:0 1px 2px rgba(0,0,0,.2);z-index:4;opacity:.92;
+  clip-path:polygon(3% 8%,97% 0,100% 92%,2% 100%)}
+
+/* 放大查看 */
+.lightbox{position:fixed;inset:0;z-index:60;background:rgba(6,5,14,.93);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:24px}
+.lightbox img{max-width:min(92vw,1100px);max-height:76vh;object-fit:contain;
+  background:#f3ecd9;border-radius:4px;box-shadow:0 24px 60px rgba(0,0,0,.7)}
+.lightbox .bar{display:flex;align-items:center;gap:18px}
+.lightbox .bar button{border:1px solid rgba(232,201,138,.45);color:var(--gold);background:rgba(30,24,50,.8);
+  cursor:pointer;border-radius:50%;width:44px;height:44px;font-size:22px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s}
+.lightbox .bar button:hover{background:rgba(60,46,96,.95);transform:scale(1.08)}
+.lightbox .bar .count{font:800 13px/1 ui-monospace,monospace;letter-spacing:.22em;color:var(--gold2);min-width:86px;text-align:center}
+.lightbox .close{position:absolute;top:22px;right:26px;border:1px solid rgba(232,201,138,.45);
+  color:var(--gold);background:rgba(30,24,50,.8);cursor:pointer;border-radius:50%;
+  width:42px;height:42px;font-size:24px;font-weight:900;line-height:1}
+
+/* 唯一的引导：NEXT → 终章 */
+.next-to{position:fixed;z-index:96;right:24px;bottom:24px;cursor:pointer;
+  border:1px solid rgba(90,68,35,.45);color:#5a4423;
+  background:rgba(247,239,221,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-radius:999px;padding:11px 22px;display:flex;align-items:center;gap:9px;
+  font-size:13px;font-weight:900;letter-spacing:.5px;white-space:nowrap;
+  box-shadow:0 10px 30px rgba(0,0,0,.28);transition:transform .2s,background .2s}
+.next-to:hover{transform:translateY(-3px);background:#fff8e9}
+.next-to:active{transform:translateY(0)}
+.next-to .nl{font:800 10px/1 ui-monospace,monospace;letter-spacing:.16em;color:rgba(90,68,35,.65)}
+.next-to .na{font-size:18px;font-weight:900;line-height:1}
+
+@media(max-width:1200px){.wall{grid-template-columns:repeat(6,1fr);gap:8px 7px}}
+@media(max-width:900px){.wall{grid-template-columns:repeat(6,1fr);gap:7px 6px}}
+@media(max-width:760px){
+  .layout{flex-direction:column;min-height:auto;padding:10px 12px 20px}
+  .board-wrap{flex:none;width:100%;padding:0}
+  .poem{flex:none;padding:18px 0 8px;font-size:clamp(22px,6vw,34px)}
+}
+@media(max-width:560px){
+  .head{padding-top:30px}
+  .board-wrap{margin-top:18px;padding:0 12px}
+  .board{padding:20px 16px 26px;border-width:10px}
+  .wall{grid-template-columns:repeat(2,1fr);gap:10px 8px}
+  .polaroid{padding:7px 7px 24px}
+  .polaroid figcaption{bottom:6px;font-size:10px}
+  .pin{width:13px;height:13px;top:-8px}
+  .tape{width:48px;height:18px;top:-8px}
+  .lightbox img{max-height:68vh}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grain"></div>
+
+<div class="layout">
+  <div class="board-wrap">
+    <div class="board">
+      <div class="wall" id="wall"></div>
+    </div>
+  </div>
+  <aside class="poem"><span>光是遇见过</span><span>已是最美丽的诗歌</span></aside>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="close" id="close" aria-label="关闭">×</button>
+  <img id="bigImg" src="" alt="回忆">
+  <div class="bar">
+    <button id="prev" aria-label="上一张">‹</button>
+    <div class="count" id="count">01 / 24</div>
+    <button id="next" aria-label="下一张">›</button>
+  </div>
+</div>
+
+<button class="next-to" id="nextTo" aria-label="下一页">
+  <span class="nl">NEXT</span><span class="na">→</span>
+</button>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const wall=$('wall'), lightbox=$('lightbox'), bigImg=$('bigImg'), count=$('count');
+  const N=24, PHOTOS=Array.from({length:N},(_,i)=>`photos/mem-${String(i+1).padStart(2,'0')}.jpg`);
+  const PIN=[['#c9a55f','#ffe6a8','#8a6b2f'],['#c9564e','#ffb0a8','#8a2f28'],['#5f88b8','#bcd6f0','#33567f']];
+  function pinSet(i){return PIN[i%7===3?1:(i%11===6?2:0)]}
+  let seed=20261119;
+  const rnd=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
+  let current=0;
+
+  PHOTOS.forEach((src,i)=>{
+    const tilt=Math.round(-4+rnd()*8);
+    const fastener=rnd()<.28
+      ? '<span class="tape"></span>'
+      : (()=>{const p=pinSet(i);return `<span class="pin" style="--pin:${p[0]};--pin-hi:${p[1]};--pin-dk:${p[2]}"></span>`})();
+    const f=document.createElement('figure');
+    f.className='polaroid'+(i===23?' tall':''); f.dataset.i=i; f.style.setProperty('--tilt',tilt+'deg');
+    f.innerHTML=fastener+`<img src="${src}" alt="回忆 ${i+1}">
+      <figcaption>${String(i+1).padStart(2,'0')}</figcaption>`;
+    f.addEventListener('click',()=>open(i));
+    wall.appendChild(f);
+  });
+
+  function show(i){
+    current=(i+N)%N;
+    bigImg.src=PHOTOS[current];
+    count.textContent=`${String(current+1).padStart(2,'0')} / ${N}`;
+  }
+  const syncNext=()=>{ const nb=$('nextTo'); if(nb) nb.style.display=lightbox.hidden?'flex':'none'; };
+  function open(i){ show(i); lightbox.hidden=false; syncNext(); }
+  function close(){ lightbox.hidden=true; syncNext(); }
+
+  $('prev').addEventListener('click',()=>show(current-1));
+  $('next').addEventListener('click',()=>show(current+1));
+  $('close').addEventListener('click',close);
+  lightbox.addEventListener('click',e=>{ if(e.target===lightbox) close(); });
+
+  // NEXT → 终章（放大看照片时不显示）
+  const nextBtn=$('nextTo');
+  syncNext();
+  nextBtn.addEventListener('click',()=>{
+    if(window.parent!==window){
+      try{window.parent.postMessage({type:'wb-goto',key:'finale'},'*')}catch(e){}
+    }else{ location.href='finale.html'; }
+  });
+  addEventListener('keydown',e=>{
+    if(lightbox.hidden)return;
+    if(e.key==='Escape')close();
+    else if(e.key==='ArrowLeft')show(current-1);
+    else if(e.key==='ArrowRight')show(current+1);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>吹蜡烛</title>
+<style>
+html,body{margin:0;height:100%;background:linear-gradient(145deg,#aabecd 0%,#8ba4b9 52%,#718ca6 100%)}
+.page-cover{position:fixed;inset:0;z-index:50;background:linear-gradient(145deg,#aabecd 0%,#8ba4b9 52%,#718ca6 100%);opacity:0;pointer-events:none;transition:opacity .28s ease}
+.page-cover.on{opacity:1;pointer-events:auto}
+/* ============ 吹蜡烛页 · 莫兰迪深蓝系（与倒计时页同一套） ============ */
+* { margin:0; padding:0; box-sizing:border-box; }
+[hidden]{ display:none !important; }
+
+/* ============ 页面转场遮罩 ============ */
+.page-cover{
+  position:fixed; inset:0; z-index:50; pointer-events:none;
+  background:linear-gradient(145deg,#aabecd 0%,#8ba4b9 52%,#718ca6 100%);
+  opacity:0; transition:opacity .55s ease;
+}
+.page-cover.on{ opacity:1; pointer-events:all; }
+:root{
+  --ink:#3b5066; --muted:#6d8298;
+  --rose:#2e4a68; --olive:#3f6184; --sage:#3a6c7c; --mauve:#4a5f85;
+}
+html,body{ height:100%; }
+body{
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(ellipse at 22% 18%,#b8cbd9 0%,transparent 56%),
+    radial-gradient(ellipse at 82% 82%,#8ea7bb 0%,transparent 56%),
+    linear-gradient(145deg,#aabecd 0%,#8ba4b9 52%,#718ca6 100%);
+  color:var(--ink); min-height:100vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  -webkit-font-smoothing:antialiased;
+}
+/* 褶皱纸纹理 */
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:.5; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='cr'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.014' numOctaves='5' seed='11' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23c9d6e0' surfaceScale='5'%3E%3CfeDistantLight azimuth='118' elevation='42'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23cr)'/%3E%3C/svg%3E");
+  background-size:520px 520px;
+}
+.grain{
+  position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.3;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+}
+.glow{ position:fixed; border-radius:50%; filter:blur(110px); z-index:0; pointer-events:none; opacity:.5; }
+.glow-a{ width:48vw; height:48vw; background:radial-gradient(circle,#7f9fba,transparent 70%); top:-15vw; left:-11vw; animation:float 14s ease-in-out infinite; }
+.glow-b{ width:44vw; height:44vw; background:radial-gradient(circle,#7d93ad,transparent 70%); bottom:-15vw; right:-11vw; animation:float 17s ease-in-out infinite reverse; }
+@keyframes float{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(28px,-28px)} }
+
+/* ============ 舞台 ============ */
+.stage{
+  position:relative; z-index:2; width:100%; height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:20px 18px; text-align:center;
+}
+/* 舞台元素依次入场（轻微位移 + 淡入）——收紧节奏，避免遮罩淡出后空窗 */
+.stage > .kicker{ animation:stageIn .4s ease both .02s; }
+.stage > .guide-title{ animation:stageIn .42s ease both .06s; }
+.stage > .guide-sub{ animation:stageIn .42s ease both .1s; }
+.stage > .cake-wrap{ animation:cakeIn .45s cubic-bezier(.22,.61,.36,1) both .12s; }
+.stage > .controls{ animation:stageIn .4s ease both .2s; }
+@keyframes stageIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+@keyframes cakeIn{ from{opacity:0; transform:scale(.97) translateY(10px)} to{opacity:1; transform:scale(1) translateY(0)} }
+.kicker{
+  font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.42em; color:var(--muted); text-transform:uppercase;
+  margin-bottom:10px;
+}
+.guide-title{
+  font-size:clamp(26px,5vw,40px); font-weight:500; letter-spacing:.04em; line-height:1.2;
+  font-family:Georgia,"Times New Roman",serif;
+  background:linear-gradient(100deg,#2e4560,#3f5a78 55%,#38606b);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-bottom:6px;
+}
+.guide-sub{ font-size:13px; color:var(--muted); letter-spacing:.03em; margin-bottom:2px; }
+.sparkle{ color:var(--rose); margin-left:2px; animation:tw 2.2s ease-in-out infinite; display:inline-block; }
+@keyframes tw{ 0%,100%{opacity:.4; transform:scale(.9)} 50%{opacity:1; transform:scale(1.15)} }
+
+/* ============ 蛋糕插画 ============ */
+.cake-wrap{
+  position:relative;
+  height:min(54vh, 460px);
+  aspect-ratio:1 / 1;
+  max-width:92vw;
+  margin:2px auto;
+  display:block;
+}
+.cake-img{
+  position:absolute; inset:0; height:100%; width:100%; object-fit:contain;
+  display:block;
+}
+/* 火焰层：与底图完全重合，吹灭只让火苗原地淡掉，不位移、不下坠 */
+.flame-layer{ z-index:2; }
+.flame-layer.out{ animation:flameOut .55s ease-out forwards; }
+@keyframes flameOut{
+  0%  { opacity:1; }
+  45% { opacity:.55; }
+  100%{ opacity:0; }
+}
+/* 吹熄时的一记轻微气息，蛋糕本身不位移 */
+.cake-wrap.puff .cake-base{ animation:cakeBreath .6s ease-out; }
+@keyframes cakeBreath{ 0%,100%{transform:translateX(0)} 30%{transform:translateX(-3px)} 60%{transform:translateX(2px)} }
+
+/* 烟：吹灭后从两根蜡烛升起 */
+.smoke{
+  position:absolute; width:14px; height:52px; pointer-events:none; z-index:2;
+  border-left:3px solid rgba(200,215,228,.62);
+  border-radius:50%; opacity:0; transform:translate(-50%,-50%);
+}
+.smoke::after{
+  content:""; position:absolute; left:8px; top:6px; width:11px; height:42px;
+  border-left:2px solid rgba(210,224,236,.5); border-radius:50%;
+}
+.smoke-a{ left:37%; top:15%; }
+.smoke-b{ left:52%; top:21%; }
+.cake-wrap.blown .smoke-a{ animation:smoke-rise 2.8s ease-out .15s both; }
+.cake-wrap.blown .smoke-b{ animation:smoke-rise 2.8s ease-out .35s both; }
+@keyframes smoke-rise{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(.8) }
+  18%{ opacity:.85 }
+  100%{ opacity:0; transform:translate(-50%,-190%) scale(1.2) translateX(10px) }
+}
+
+/* ============ 控制区 ============ */
+.controls{ margin-top:6px; transition:opacity .45s ease, transform .45s ease; }
+.controls.fade-out{ opacity:0; transform:translateY(12px) scale(.98); pointer-events:none; }
+.meter-row{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; }
+.mic-dot{ width:9px; height:9px; border-radius:50%; background:var(--rose); box-shadow:0 0 0 4px rgba(46,74,104,.2); animation:pulse 1.2s ease-in-out infinite; }
+@keyframes pulse{ 0%,100%{opacity:1; transform:scale(1)} 50%{opacity:.5; transform:scale(.82)} }
+.meter{ width:min(200px,46vw); height:6px; background:rgba(50,80,106,.3); border-radius:6px; overflow:hidden; }
+.meter i{ display:block; height:100%; width:4%; border-radius:6px; background:linear-gradient(90deg,var(--sage),var(--olive),var(--rose)); transition:width .08s linear; }
+.meter-tip{ font-size:12px; color:var(--muted); }
+.btn-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.blow-btn,.mic-btn,.next-btn{
+  border:0; border-radius:100px; cursor:pointer; font-weight:500; letter-spacing:.02em;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.blow-btn{
+  padding:13px 34px; font-size:15px; color:#fff;
+  background:linear-gradient(100deg,#2e4a68,#3f6184 55%,#3a6c7c);
+  box-shadow:0 10px 26px rgba(35,60,85,.4);
+}
+.mic-btn{
+  padding:12px 26px; font-size:13px; color:#3f5a74;
+  background:rgba(248,251,253,.8); border:1px solid rgba(85,115,142,.45);
+}
+.blow-btn:hover,.mic-btn:hover,.next-btn:hover{ transform:translateY(-3px); }
+.blow-btn:active,.mic-btn:active,.next-btn:active{ transform:translateY(0); }
+.tiny-tip{ font-size:11px; color:var(--muted); margin-top:10px; opacity:.9; }
+
+/* ============ 吹灭后 ============ */
+.wish{ margin-top:14px; animation:wishIn .75s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes wishIn{ from{opacity:0; transform:translateY(20px) scale(.96)} to{opacity:1; transform:translateY(0) scale(1)} }
+.wish-text{ animation:itemUp .6s ease both .05s; }
+.wish .next-btn{ animation:itemUp .6s ease both .2s; }
+@keyframes itemUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+.wish-text{
+  font-family:Georgia,"Times New Roman",serif; font-size:clamp(18px,3.4vw,26px);
+  background:linear-gradient(100deg,#2e4560,#3f5a78 55%,#38606b);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-bottom:16px;
+}
+.next-btn{
+  padding:12px 32px; font-size:14px; color:#fff;
+  background:linear-gradient(100deg,#2e4560,#38606b);
+  box-shadow:0 8px 22px rgba(35,60,85,.38);
+}
+
+/* ============ 移动端 ============ */
+@media (max-width:560px){
+  .stage{ padding:16px 12px; }
+  .cake-wrap{ height:min(50vh,420px); }
+  .guide-title{ font-size:clamp(23px,7vw,31px); }
+  .kicker{ letter-spacing:.3em; }
+  .blow-btn{ padding:12px 26px; font-size:14px; }
+}
+@media (max-height:700px){
+  .cake-wrap{ height:48vh; }
+  .guide-title{ font-size:clamp(22px,4.5vw,32px); margin-bottom:4px; }
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.01ms !important; animation-delay:0ms !important; transition-duration:.01ms !important; }
+}
+
+
+/* 统一背景：主页纸纹 */
+html,body{background:url('photos/collage-bg-clean.jpg') center/cover no-repeat fixed!important}
+body::before{display:none!important}
+.page-cover{background:url('photos/collage-bg-clean.jpg') center/cover no-repeat fixed!important}
+
+
+/* 蛋糕放大 */
+.cake-wrap{height:min(64vh,580px)!important}
+
+</style>
+</head><body>
+<div class="page-cover on" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="glow glow-a" aria-hidden="true"></div>
+<div class="glow glow-b" aria-hidden="true"></div>
+<section class="stage">
+  <div class="kicker">01 · MAKE A WISH</div>
+  <h1 class="guide-title">先吹个蜡烛吧</h1>
+  <p class="guide-sub">先许个愿，再把蜡烛吹灭 <span class="sparkle">✦</span></p>
+  <div class="cake-wrap" id="cake-wrap">
+    <img class="cake-img cake-base" src="images/cake-base.png" alt="YiRo 的生日蛋糕">
+    <img class="cake-img flame-layer" id="flame-layer" src="images/flame.png" alt="" aria-hidden="true">
+    <span class="smoke smoke-a" aria-hidden="true"></span>
+    <span class="smoke smoke-b" aria-hidden="true"></span>
+  </div>
+  <div class="controls" id="controls">
+    <div class="meter-row" id="meter-row" hidden>
+      <span class="mic-dot"></span>
+      <div class="meter"><i id="meter-fill"></i></div>
+      <span class="meter-tip" id="meter-tip">对着麦克风吹气～</span>
+    </div>
+    <div class="btn-row">
+      <button class="blow-btn" id="blow-btn">吹灭蜡烛</button>
+    </div>
+    <p class="tiny-tip" id="tiny-tip">点一下按钮，就能吹灭蜡烛</p>
+  </div>
+  <div class="wish" id="wish" hidden>
+    <p class="wish-text">心愿会实现吗，会吗？会的。</p>
+    <button class="next-btn" id="next-btn">继续 →</button>
+  </div>
+</section>
+<script>/* ============================================================
+ * 倒计时配置 —— 所有要改的东西都在这一个文件
+ * ============================================================ */
+window.CONFIG = {
+  // 目标时刻：农历十月十三 = 公历 2026-11-21 00:00（北京时间）
+  target: "2026-11-21T00:00:00+08:00",
+
+  // 进度条起点（仅影响进度条百分比，随便设）
+  progressFrom: "2026-11-01T00:00:00+08:00",
+
+  // 解锁后是否一直保留解锁状态（刷新/重开都不用再等）
+  rememberUnlock: true,
+  storageKey: "yiro_unlocked",
+
+  // 解锁后按钮动作：拆开礼物 → 吹蜡烛页
+  afterEnter: { jump: "candle.html" },
+
+  // 吹蜡烛页"继续"按钮：下一幕做好后填链接，例如 "letter.html"
+  afterCandle: { jump: "" }
+};
+</script>
+<script>/* ============================================================
+ * 吹蜡烛交互 —— 麦克风音量检测 + 点击降级 + 吹灭庆祝（无烟花）
+ * ============================================================ */
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const cakeWrap = $("cake-wrap");
+  const flameLayer = $("flame-layer");
+  const blowBtn = $("blow-btn");
+  const meterRow = $("meter-row");
+  const meterFill = $("meter-fill");
+  const meterTip = $("meter-tip");
+  const tinyTip = $("tiny-tip");
+  const controls = $("controls");
+  const wish = $("wish");
+  const nextBtn = $("next-btn");
+
+  const cfg = window.CONFIG || {};
+  const pageCover = document.querySelector(".page-cover");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let blown = false;
+
+  // 吹灭：统一入口，调用多次也只生效一次
+  function blowOut() {
+    if (blown) return;
+    blown = true;
+    stopMic();
+
+    // 火苗渐隐熄灭：蛋糕本体不动，只让火焰层淡出，同时冒烟
+    cakeWrap.classList.add("blown");
+    if (flameLayer) flameLayer.classList.add("out");
+    cakeWrap.classList.add("puff");
+
+    // 控制区柔和淡出 → 收起，再浮出祝福与继续按钮
+    controls.classList.add("fade-out");
+    setTimeout(() => {
+      controls.hidden = true;
+      wish.hidden = false;
+    }, reduceMotion ? 0 : 560);
+  }
+
+  /* ---------- 麦克风音量检测 ---------- */
+  let audioCtx = null, analyser = null, micStream = null, micRaf = null;
+  let loudFrames = 0;
+
+  async function startMic() {
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(micStream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.6;
+      src.connect(analyser);
+
+      meterRow.hidden = false;
+      micBtn.hidden = true;
+      tinyTip.textContent = "用力吹～ 音量够了蜡烛就灭";
+      const data = new Uint8Array(analyser.fftSize);
+
+      function loop() {
+        if (blown) return;
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        const level = Math.min(100, rms * 420);
+        meterFill.style.width = Math.max(4, level) + "%";
+
+        // 持续超过阈值才吹灭，避免说话/环境声误触
+        if (rms > 0.22) {
+          loudFrames++;
+          if (loudFrames > 4) { blowOut(); return; }
+        } else {
+          loudFrames = Math.max(0, loudFrames - 1);
+        }
+        micRaf = requestAnimationFrame(loop);
+      }
+      loop();
+    } catch (e) {
+      // 麦克风不可用 → 退回点击
+      meterTip.textContent = "麦克风没授权，点按钮吹吧";
+      micBtn.hidden = true;
+      tinyTip.textContent = "点「吹灭蜡烛」也可以哦";
+    }
+  }
+
+  function stopMic() {
+    if (micRaf) cancelAnimationFrame(micRaf);
+    if (micStream) micStream.getTracks().forEach((t) => t.stop());
+    if (audioCtx && audioCtx.state !== "closed") audioCtx.close();
+  }
+
+  /* ---------- 事件绑定：只保留按钮吹灭 ---------- */
+  blowBtn.addEventListener("click", blowOut);
+
+  nextBtn.addEventListener("click", () => {
+    if (cfg.afterCandle && cfg.afterCandle.jump) {
+      if (pageCover) pageCover.classList.add("on");  // 遮罩淡入转场
+      setTimeout(() => { location.href = cfg.afterCandle.jump; }, reduceMotion ? 0 : 580);
+    }
+  });
+
+  // 内嵌模式（index.html 同文档切换）vs 独立页面（candle.html）
+  const embedded = !!document.getElementById("candle-view");
+  const params = new URLSearchParams(location.search);
+
+  // 页面入场：等底图与火焰层就绪再淡出遮罩（独立页用；内嵌页由 main.js 控制遮罩）
+  function reveal() {
+    if (!pageCover) return;
+    requestAnimationFrame(() => requestAnimationFrame(() => pageCover.classList.remove("on")));
+  }
+  function autoReveal() {
+    const imgs = Array.from(document.querySelectorAll(".cake-img"));
+    let pending = imgs.filter((im) => !im.complete).length;
+    if (pending === 0) {
+      reveal();
+    } else {
+      imgs.forEach((im) => {
+        if (im.complete) return;
+        const done = () => { if (--pending <= 0) reveal(); };
+        im.addEventListener("load", done, { once: true });
+        im.addEventListener("error", done, { once: true });
+      });
+      setTimeout(reveal, 500);
+    }
+  }
+
+  if (!embedded) {
+    // 独立页：自动入场；?preview=1 直接看吹灭后状态
+    autoReveal();
+    if (params.get("preview") === "1") setTimeout(blowOut, 400);
+  }
+
+  // 供 index.html 切换到蜡烛舞台时调用（重启舞台入场动画）
+  window.CandleStage = {
+    activate() {
+      const stage = document.querySelector("#candle-view .stage");
+      if (!stage) return;
+      // 重置舞台入场动画：移除再触发重排后加回
+      const kids = stage.children;
+      Array.from(kids).forEach((el) => { el.style.animation = "none"; });
+      void stage.offsetWidth;
+      Array.from(kids).forEach((el) => { el.style.animation = ""; });
+      // 内嵌模式 preview=1 → 直接看吹灭效果
+      if (params.get("preview") === "1") setTimeout(blowOut, 350);
+    }
+  };
+})();
+</script>
+<script>
+// 整合页内：吹灭后点「继续」滚到主页环节；独立打开时不干扰
+document.getElementById('next-btn').addEventListener('click', function () {
+  var p = window.parent;
+  if (p === window) return;                       // 独立页不处理
+  var target = null;
+  try { target = p.document.querySelector('[data-key=home]'); } catch (e) {}
+  if (!target) return;
+  var y = target.getBoundingClientRect().top + p.scrollY;
+  var before = p.scrollY;
+  // 1) 直接操作父文档滚动（同源 srcdoc iframe 最可靠，不依赖消息通道）
+  try { p.scrollTo({ top: y, behavior: 'smooth' }); } catch (e) {}
+  // 2) postMessage 兜底
+  try { p.postMessage({ type: 'wb-goto', key: 'home' }, '*'); } catch (e) {}
+  // 3) 若平滑滚动不被支持，瞬时兜底
+  setTimeout(function () {
+    try { if (Math.abs(p.scrollY - before) < 20) p.scrollTo(0, y); } catch (e) {}
+  }, 140);
+});
+</script>
+</body></html>

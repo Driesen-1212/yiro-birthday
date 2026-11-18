@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOR YiRo · 生日快乐</title>
+<style>
+:root{
+  --paper:#efe4cf; --paper2:#f6eddb; --paper3:#e6d8bd;
+  --ink:#3b3325; --ink2:#6b5f4a;
+  --pink:#ff6f91; --yellow:#ffc93c; --blue:#4fb8e8; --green:#77c88b; --orange:#ff9a52; --purple:#b394d6;
+  --wood:#c9a06f; --wood2:#a97e4e;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  background:var(--paper);color:var(--ink);overflow:hidden;
+}
+[hidden]{display:none!important}
+
+/* 纸纹噪点：整站统一 */
+.grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply}
+
+/* ============ 分屏 ============ */
+.stage{display:flex;width:100vw;height:100vh;position:relative}
+/* 底层：干净涂鸦纸纹铺满全屏，左右背景完全一致 */
+.bg-fill{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:url('photos/collage-bg-clean.jpg') center/cover no-repeat}
+/* 左上：透明人物贴纸（自带白边/帽子/蛋糕），左半区正中心，主体约占左半 3/4 */
+.portrait{position:absolute;z-index:1;left:calc(50% + 2cm);top:50%;transform:translate(-50%,-50%);
+  height:94%;width:auto;max-width:100%;object-fit:contain;pointer-events:none;
+  filter:drop-shadow(0 18px 26px rgba(92,64,32,.18));
+  animation:breathe 14s ease-in-out infinite alternate}
+@keyframes breathe{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(1.025)}}
+
+/* ---- 左：拼贴主视觉 ---- */
+.left{position:relative;width:50%;height:100%;overflow:hidden;z-index:1}
+
+/* 飘落纸屑 */
+/* 全屏飘落礼花 */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:55;overflow:hidden}
+.confetti i{position:absolute;top:-8%;width:9px;height:14px;border-radius:2px;opacity:.85;
+  animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(115vh) rotate(620deg)}}
+.left .corner{position:absolute;z-index:6;left:22px;bottom:20px;
+  font:700 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.32em;color:var(--ink2)}
+
+/* ---- 右：唱机 ---- */
+.right{position:relative;width:50%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:1}
+.right .corner{position:absolute;top:22px;right:24px;
+  font:700 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.32em;color:var(--ink2)}
+
+/* 底座 → 透明玻璃（透出背景纸纹，靠高光/边框表现玻璃厚度） */
+.deck{position:relative;width:min(78%,470px);aspect-ratio:1/1;
+  border-radius:26px;
+  background:linear-gradient(145deg,rgba(255,255,255,.5) 0%,rgba(240,248,252,.32) 45%,rgba(214,232,242,.4) 100%);
+  -webkit-backdrop-filter:blur(4px) saturate(1.08);
+  backdrop-filter:blur(4px) saturate(1.08);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:0 26px 54px rgba(60,100,135,.26),
+    inset 0 1px 1px rgba(255,255,255,.95),
+    inset 0 0 0 1px rgba(255,255,255,.4),
+    inset 0 0 36px rgba(255,255,255,.4),
+    inset 0 -14px 30px rgba(130,170,200,.16);
+  display:flex;align-items:center;justify-content:center}
+.deck::before{content:"";position:absolute;inset:12px;border-radius:17px;
+  border:1px solid rgba(255,255,255,.55);pointer-events:none}
+/* 玻璃斜向高光 */
+.deck::after{content:"";position:absolute;inset:0;border-radius:26px;pointer-events:none;
+  background:linear-gradient(128deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.12) 20%,transparent 38%)}
+
+/* 转盘凹槽 */
+.platter{position:relative;width:84%;height:84%;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#5a5a5e,#2c2c30 60%,#1a1a1d);
+  box-shadow:0 8px 20px rgba(30,60,90,.4),0 0 0 6px rgba(90,140,175,.25) inset;
+  display:flex;align-items:center;justify-content:center}
+
+/* 黑胶 */
+.vinyl{position:relative;width:96%;height:96%;border-radius:50%;cursor:pointer;
+  background:
+    repeating-radial-gradient(circle at center,rgba(255,255,255,.055) 0 1px,transparent 1px 4px) ,
+    radial-gradient(circle at center,#2a2d33 0 20%,#141619 20% 100%);
+  box-shadow:0 10px 26px rgba(0,0,0,.5);
+  transition:transform .1s linear}
+.vinyl.spin{animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 高光扫过 */
+.vinyl::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 210deg,transparent 0 18%,rgba(255,255,255,.11) 24%,transparent 30% 62%,rgba(255,255,255,.075) 68%,transparent 74%)}
+/* 中心标签 */
+.label{position:absolute;left:50%;top:50%;width:34%;height:34%;transform:translate(-50%,-50%);
+  border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.5);
+  background:var(--pink);box-shadow:0 0 0 5px rgba(0,0,0,.35)}
+.label img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:saturate(1.05) contrast(1.02)}
+.label .ring{position:absolute;inset:0;border-radius:50%;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+.spindle{position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);
+  border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b9b9bd 55%,#6f6f74);
+  box-shadow:0 1px 4px rgba(0,0,0,.6);z-index:3}
+
+/* 唱臂 */
+.tonearm{position:absolute;top:9%;right:6%;width:15%;height:15%;
+  border-radius:50%;z-index:4;transform-origin:50% 50%;
+  background:radial-gradient(circle at 35% 30%,#f2ead9,#b9ad97 60%,#8d8069);
+  box-shadow:0 3px 8px rgba(0,0,0,.4);
+  transition:transform 1s cubic-bezier(.4,1.4,.5,1)}
+.tonearm::before{content:"";position:absolute;left:50%;top:50%;
+  width:12px;height:190%;transform-origin:top center;
+  transform:translateX(-50%) rotate(15deg);
+  background:linear-gradient(90deg,#cfc6b2,#f0e8d6 45%,#a89c85);
+  border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.3);
+  transition:transform 1s cubic-bezier(.4,1.4,.5,1)}
+.tonearm::after{content:"";position:absolute;left:50%;top:calc(50% + 175%);
+  width:26px;height:16px;transform:translateX(-62%) rotate(15deg);
+  background:linear-gradient(180deg,#5a5142,#332e26);border-radius:3px;
+  box-shadow:0 3px 6px rgba(0,0,0,.4);
+  transition:transform 1s cubic-bezier(.4,1.4,.5,1)}
+.deck.playing .tonearm{transform:rotate(-9deg)}
+.deck.playing .tonearm::before{transform:translateX(-50%) rotate(42deg)}
+.deck.playing .tonearm::after{transform:translateX(-62%) rotate(42deg)}
+
+/* 唱机组整体往左下移 2.5cm 后再上移 1.5cm（净：左2.5cm、下1cm） */
+.right .deck,.right .controls,.right .np{transform:translate(-2.5cm,1cm)}
+
+/* 控制条 */
+.controls{display:flex;align-items:center;gap:16px;margin-top:30px}
+.play-btn{display:flex;align-items:center;gap:10px;border:0;cursor:pointer;
+  padding:13px 27px;border-radius:999px;color:#fff;font-size:15px;font-weight:800;letter-spacing:.5px;
+  background:linear-gradient(135deg,var(--pink),var(--orange));
+  box-shadow:0 10px 26px rgba(255,111,145,.36);
+  transition:transform .18s,box-shadow .18s}
+.play-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(255,111,145,.48)}
+.play-btn:active{transform:translateY(1px)}
+.play-btn .ico{font-size:14px}
+.np{text-align:center;margin-top:16px}
+.np .line{display:flex;align-items:center;justify-content:center;gap:9px;
+  font:700 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.3em;color:var(--ink2)}
+.eq{display:inline-flex;gap:3px;height:12px;align-items:flex-end}
+.eq b{width:3px;background:var(--pink);border-radius:2px;height:4px}
+.deck.playing~.controls .eq b{animation:eq .9s ease-in-out infinite alternate}
+.eq b:nth-child(2){animation-delay:.2s!important}.eq b:nth-child(3){animation-delay:.4s!important}
+@keyframes eq{to{height:12px}}
+.np .song{margin-top:9px;font-size:17px;font-weight:800;letter-spacing:2px}
+
+/* 响应式：窄屏上下堆叠 */
+@media(max-width:860px){
+  body{overflow:auto}
+  .stage{flex-direction:column;height:auto;min-height:100vh}
+  .bg-fill{height:56vh;inset:0 0 auto 0;background-position:center center;background-size:cover}
+  .left{width:100%;height:56vh;border-bottom:1px solid rgba(90,70,40,.16)}
+  .portrait{left:50%}
+  .right{width:100%;height:auto;min-height:70vh;padding:70px 0 60px;
+    background:linear-gradient(155deg,#f3ead8,#e9dcc2)}
+  .deck{width:min(82%,420px)}
+  /* 窄屏位移收小，避免唱机被挤出屏幕 */
+  .right .deck,.right .controls,.right .np{transform:translate(-8px,12px)}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<audio id="bgm" src="assets/dear-friend.mp3" preload="auto"></audio>
+
+<main class="stage">
+  <div class="bg-fill"></div>
+  <div class="confetti" id="confetti"></div>
+  <!-- 左：人物贴纸主视觉 -->
+  <section class="left">
+    <img class="portrait" src="photos/person-sticker.webp" alt="YiRo 生日">
+    <span class="corner">FOR YIRO · 01</span>
+  </section>
+
+  <!-- 右：唱机 -->
+  <section class="right">
+    <span class="corner">MUSIC BOX · 02</span>
+    <div class="deck" id="deck">
+      <div class="platter">
+        <div class="vinyl" id="vinyl" title="点唱片也能播放 / 暂停">
+          <div class="label">
+            <img src="photos/dear-friend.jpg" alt="Dear friend">
+            <div class="ring"></div>
+          </div>
+          <div class="spindle"></div>
+        </div>
+      </div>
+      <div class="tonearm"></div>
+    </div>
+
+    <div class="controls">
+      <button class="play-btn" id="playBtn"><span class="ico" id="ico">▶</span><span id="btnText">播放</span></button>
+    </div>
+    <div class="np">
+      <p class="line"><span class="eq"><b></b><b></b><b></b></span> NOW PLAYING</p>
+      <p class="song">可能性是无限 · 眼睛是万花筒</p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* 全屏飘落纸屑 */
+(function(){
+  const box=document.getElementById('confetti');
+  const colors=['#ff6f91','#ffc93c','#4fb8e8','#77c88b','#ff9a52','#b394d6'];
+  const N=96;
+  for(let i=0;i<N;i++){
+    const el=document.createElement('i');
+    // 均匀铺开后加随机抖动，避免扎堆
+    el.style.left=Math.min(99.5,(i/N*100+ (Math.random()*2-1)*1.6)).toFixed(2)+'%';
+    el.style.background=colors[i%colors.length];
+    el.style.animationDuration=(6.5+Math.random()*9)+'s';
+    el.style.animationDelay=(-Math.random()*14)+'s';
+    el.style.opacity=(.45+Math.random()*.45);
+    el.style.width=(5+Math.random()*7)+'px';
+    el.style.height=(8+Math.random()*9)+'px';
+    if(i%3===0)el.style.borderRadius='50%';
+    box.appendChild(el);
+  }
+})();
+
+/* 背景音乐：单依纯 · Dear Friend（去前 15 秒）—— 单曲播完即止，不循环 */
+const bgm=document.getElementById('bgm');
+const inFrame=()=>window.parent!==window;
+let playing=false,autoGoTimer=null;
+function setUI(on){
+  document.getElementById('deck').classList.toggle('playing',on);
+  document.getElementById('vinyl').classList.toggle('spin',on);
+  document.getElementById('ico').textContent=on?'❚❚':'▶';
+  document.getElementById('btnText').textContent=on?'暂停':'播放';
+}
+function start(){
+  playing=true;setUI(true);
+  // 整合页里交给外壳播放，切页面时歌声不断；单独打开时直接播放本页音频
+  if(inFrame()){
+    try{window.parent.postMessage({type:'wb-audio',action:'play'},'*')}catch(e){}
+  }else{
+    bgm.play().catch(()=>{});
+  }
+  clearTimeout(autoGoTimer);
+  if(inFrame()){
+    autoGoTimer=setTimeout(()=>{
+      try{window.parent.postMessage({type:'wb-goto',key:'gacha'},'*')}catch(e){}
+    },3000);
+  }
+}
+function stop(){
+  playing=false;setUI(false);
+  clearTimeout(autoGoTimer);
+  if(inFrame()){
+    try{window.parent.postMessage({type:'wb-audio',action:'pause'},'*')}catch(e){}
+  }else bgm.pause();
+}
+bgm.addEventListener('ended',()=>{playing=false;setUI(false)});
+document.getElementById('playBtn').addEventListener('click',()=>playing?stop():start());
+document.getElementById('vinyl').addEventListener('click',()=>playing?stop():start());
+</script>
+</body>
+</html>

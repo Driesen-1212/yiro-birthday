@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>烟花</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:
+    radial-gradient(ellipse at 22% 18%,#b8cbd9 0%,transparent 56%),
+    radial-gradient(ellipse at 82% 82%,#8ea7bb 0%,transparent 56%),
+    linear-gradient(145deg,#aabecd 0%,#8ba4b9 52%,#718ca6 100%);
+  color:#3b5066;overflow:hidden;
+}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='cr'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.014' numOctaves='5' seed='11' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23c9d6e0' surfaceScale='5'%3E%3CfeDistantLight azimuth='118' elevation='42'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23cr)'/%3E%3C/svg%3E");
+  background-size:520px 520px}
+.grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.3;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E")}
+#fireworks{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.words{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:24px;pointer-events:none}
+.kick{font:600 11px/1 ui-monospace,monospace;letter-spacing:.42em;color:#6d8298;margin-bottom:24px}
+.big{font:500 clamp(38px,10vw,80px)/1.1 Georgia,"Times New Roman",serif;letter-spacing:3px;
+  background:linear-gradient(100deg,#2e4560,#3f5a78 55%,#38606b);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.lines{margin-top:26px;font-size:clamp(15px,3vw,19px);color:#4a6076;line-height:2.2;letter-spacing:1px;
+  font-family:Georgia,"Times New Roman",serif}
+.foot{margin-top:40px;font:600 11px/1 ui-monospace,monospace;letter-spacing:.24em;color:#6d8298}
+.hintbar{position:fixed;z-index:3;left:0;right:0;bottom:24px;text-align:center;pointer-events:none}
+.hintbar button{pointer-events:auto;border:1px solid rgba(85,115,142,.45);color:#3f5a74;
+  background:rgba(248,251,253,.72);backdrop-filter:blur(8px);cursor:pointer;border-radius:999px;
+  padding:11px 26px;font-size:13px;font-weight:500;letter-spacing:1px;transition:transform .2s,background .2s}
+.hintbar button:hover{transform:translateY(-2px);background:rgba(255,255,255,.92)}
+
+/* 统一背景：主页纸纹 */
+html,body{background:url('photos/collage-bg-clean.jpg') center/cover no-repeat fixed!important}
+body::before{display:none!important}
+.page-cover{background:url('photos/collage-bg-clean.jpg') center/cover no-repeat fixed!important}
+
+</style>
+</head><body>
+<canvas id="fireworks"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="words">
+  <div class="kick">HAPPY BIRTHDAY · FOR YIRO</div>
+  <div class="big">生日快乐<br>陈怡蓉</div>
+  <div class="lines">愿你永远有得聊、有得吃<br>有地方想去，有人等你</div>
+  <div class="foot">2026 · 农历十月十三 · 永远在你身后</div>
+</div>
+<div class="hintbar"><button id="more">再放一场烟花 🎆</button></div>
+<script>/* ============================================================
+ * Canvas 烟花 —— 移植自 Martarion-Code 的 Canvas.js 写法
+ *   重力 gravity、阻力 friction、透明度衰减 + hsl 随机色粒子
+ * ============================================================ */
+(function () {
+  "use strict";
+
+  const canvas = document.getElementById("fireworks");
+  const c = canvas.getContext("2d");
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  const gravity = 0.05;
+  const friction = 0.985;
+  let particles = [];
+  let running = false;
+  let raf = null;
+  let burstTimer = null;
+
+  class Particle {
+    constructor(x, y, radius, color, velocity) {
+      this.x = x;
+      this.y = y;
+      this.radius = radius;
+      this.color = color;
+      this.velocity = velocity;
+      this.alpha = 1;
+    }
+    draw() {
+      c.save();
+      c.globalAlpha = this.alpha;
+      c.beginPath();
+      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      c.fillStyle = this.color;
+      c.shadowBlur = 12;
+      c.shadowColor = this.color;
+      c.fill();
+      c.closePath();
+      c.restore();
+    }
+    update() {
+      this.draw();
+      this.velocity.y *= friction;
+      this.velocity.x *= friction;
+      this.velocity.y += gravity;
+      this.x += this.velocity.x;
+      this.y += this.velocity.y;
+      this.alpha -= 0.008;
+    }
+  }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  // 在 (x,y) 炸开一朵烟花
+  function explode(x, y, power) {
+    power = power || 8;
+    const particleCount = 90;
+    const angleIncrement = (Math.PI * 2) / particleCount;
+    // 莫兰迪多色板：雾蓝 / 灰蓝 / 青灰 / 藕紫 / 雾白 / 淡金 / 柔粉 / 亮蓝 / 柔青
+    // 每朵随机抽 3 色混搭，颜色更丰富但仍是低饱和雾面调
+    const palette = [
+      "#5a7891", "#6f8fa3", "#7d9c9e", "#7c76a0", "#c8d4dd",
+      "#c9b48f", "#b58a9c", "#7fa8c9", "#9dc2bd", "#4a5f85"
+    ];
+    const pick = () => palette[Math.floor(Math.random() * palette.length)];
+    const mix = [pick(), pick(), pick()];
+    for (let i = 0; i < particleCount; i++) {
+      const spread = Math.random() * power;
+      particles.push(
+        new Particle(
+          x,
+          y,
+          rand(2, 4),
+          mix[i % mix.length],
+          {
+            x: Math.cos(angleIncrement * i) * spread,
+            y: Math.sin(angleIncrement * i) * spread
+          }
+        )
+      );
+    }
+  }
+
+  // 随机位置炸一朵
+  function randomBurst() {
+    const x =
+      window.innerWidth <= 768
+        ? rand(40, window.innerWidth - 40)
+        : rand(160, window.innerWidth - 160);
+    const y = rand(60, window.innerHeight * 0.62);
+    explode(x, y);
+  }
+
+  function animate() {
+    if (!running) return;
+    raf = requestAnimationFrame(animate);
+    // 透明拖尾：只擦除粒子自身的透明度，保持画布透明，露出背景深蓝+褶皱
+    c.globalCompositeOperation = "destination-out";
+    c.fillStyle = "rgba(0, 0, 0, 0.12)";
+    c.fillRect(0, 0, canvas.width, canvas.height);
+    c.globalCompositeOperation = "source-over";
+    particles.forEach((p, i) => {
+      if (p.alpha > 0) p.update();
+      else particles.splice(i, 1);
+    });
+  }
+
+  // 持续放烟花（解锁后调用）
+  function start() {
+    if (running) return;
+    running = true;
+    animate();
+    randomBurst();
+    burstTimer = setInterval(randomBurst, 1100);
+  }
+
+  function stop() {
+    running = false;
+    clearInterval(burstTimer);
+    cancelAnimationFrame(raf);
+    particles = [];
+    c.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // 手动放一大把（点按钮时）
+  function finale() {
+    const n = 5;
+    for (let i = 0; i < n; i++) {
+      setTimeout(randomBurst, i * 220);
+    }
+  }
+
+  window.Fireworks = { start, stop, finale, explode };
+})();
+</script>
+<script>
+(function(){
+  window.Fireworks.start();
+  document.getElementById('more').addEventListener('click',()=>window.Fireworks.finale());
+  document.getElementById('fireworks').style.pointerEvents='auto';
+  document.getElementById('fireworks').addEventListener('click',e=>window.Fireworks.explode(e.clientX,e.clientY));
+})();
+</script>
+</body></html>
