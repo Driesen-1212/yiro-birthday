@@ -204,17 +204,6 @@ body::before{
 .enter-btn:hover{ transform:translateY(-3px); box-shadow:0 14px 34px rgba(30,55,80,.5); }
 .enter-btn:active{ transform:translateY(0); }
 
-/* ============ 测试按钮 ============ */
-.test-btn{
-  position:fixed; z-index:5; bottom:18px; right:18px;
-  padding:9px 16px; border-radius:100px; cursor:pointer;
-  font-size:12px; font-weight:500; letter-spacing:.02em;
-  color:#42607c; background:rgba(248,251,253,.75);
-  border:1px solid rgba(85,115,142,.42);
-  backdrop-filter:blur(10px); transition:.2s;
-}
-.test-btn:hover{ background:rgba(255,255,255,.95); color:#2e4560; }
-
 /* ============ 移动端 ============ */
 @media (max-width:560px){
   .card{ padding:46px 22px 38px; }
@@ -222,7 +211,6 @@ body::before{
   .unit{ padding:18px 3px 13px; }
   .unit span{ font-size:8px; letter-spacing:.14em; }
   .title{ font-size:clamp(23px,7vw,32px); }
-  .test-btn{ bottom:12px; right:12px; font-size:11px; }
 }
 
 /* 尊重系统"减少动态效果"偏好 */
@@ -478,7 +466,6 @@ body::before{display:none!important}
     </div>
   </div>
 </section>
-<button class="test-btn" id="test-btn" title="跳过倒计时直接看烟花解锁效果">⚡ 预览解锁效果</button>
 <script>/* ============================================================
  * 倒计时配置 —— 所有要改的东西都在这一个文件
  * ============================================================ */
@@ -656,7 +643,6 @@ window.CONFIG = {
   const $ = (id) => document.getElementById(id);
   const gate = $("gate");
   const unlocked = $("unlocked");
-  const testBtn = $("test-btn");
   const pageCover = document.querySelector(".page-cover");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -743,13 +729,6 @@ window.CONFIG = {
   const params = new URLSearchParams(location.search);
   if (params.get("preview") === "1") doUnlock();
 
-  // 测试按钮：跳过倒计时直接看烟花
-  testBtn.addEventListener("click", () => {
-    doUnlock();
-    window.Fireworks.finale();
-    testBtn.style.display = "none";
-  });
-
   // 解锁后的"拆开礼物"按钮 → 同文档瞬时切换到吹蜡烛视图
   // 关键：不用全屏遮罩。同文档切换是原子的，遮罩只会造成"整屏空一下"的观感。
   $("enter-btn").addEventListener("click", () => {
@@ -759,7 +738,6 @@ window.CONFIG = {
     const candleView = $("candle-view");
     if (candleView) candleView.hidden = false;
     if (window.CandleStage && window.CandleStage.activate) window.CandleStage.activate();
-    if (testBtn) testBtn.hidden = true;
   });
 
   // 页面入场：移除遮罩，柔和淡出
